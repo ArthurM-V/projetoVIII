@@ -9,7 +9,9 @@ const fallbackOrganizations = [
   { id: 'rede-recomeco', name: 'Rede Recomeço', category: 'Assistência social', distance: '5,6 km', initials: 'RR', color: 'green', needs: 'Cestas básicas' },
 ]
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+// No deploy integrado, o frontend e a API usam o mesmo domínio. No Vite local,
+// mantemos a API do Express na porta 5000.
+const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '')
 let googleMapsPromise
 
 function loadGoogleMaps(apiKey) {
@@ -179,7 +181,7 @@ function InstitutionRegistrationPage() {
     setIsSubmitting(true)
     setStatus({ type: '', message: '' })
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/instituicoes`, {
+      const response = await fetch(`${apiBaseUrl}/api/instituicoes`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
       const data = await response.json()
@@ -236,7 +238,7 @@ function UserRegistrationPage() {
     setIsSubmitting(true)
     setStatus({ type: '', message: '' })
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/usuarios`, {
+      const response = await fetch(`${apiBaseUrl}/api/usuarios`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
       const data = await response.json()
@@ -276,7 +278,7 @@ function LoginPage() {
     setIsSubmitting(true)
     setStatus({ type: '', message: '' })
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/login`, {
+      const response = await fetch(`${apiBaseUrl}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -358,7 +360,7 @@ function InstitutionProfilePage({ isEditingProfile = false }) {
 
   async function logout() {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/logout`, { method: 'POST', credentials: 'include' })
+      await fetch(`${apiBaseUrl}/api/logout`, { method: 'POST', credentials: 'include' })
     } finally {
       window.location.href = '/login'
     }
@@ -764,15 +766,31 @@ function MapPage({ organizations }) {
 
 function App() {
   const organizations = useOrganizations()
+  const pathname = window.location.pathname
   const institutionPublicMatch = window.location.pathname.match(/^\/instituicoes\/([^/]+)$/)
-  if (window.location.pathname === '/cadastro') return <UserRegistrationPage />
-  if (window.location.pathname === '/instituicoes') return <InstitutionRegistrationPage />
-  if (window.location.pathname === '/instituicoes/perfil') return <InstitutionProfilePage />
-  if (window.location.pathname === '/instituicoes/perfil/editar') return <InstitutionProfilePage isEditingProfile />
-  if (window.location.pathname === '/usuario/perfil') return <UserProfilePage />
+
+  useEffect(() => {
+    const titles = {
+      '/cadastro': 'Criar conta',
+      '/instituicoes': 'Cadastro de instituição',
+      '/instituicoes/perfil': 'Painel da instituição',
+      '/instituicoes/perfil/editar': 'Editar perfil da instituição',
+      '/usuario/perfil': 'Meu perfil',
+      '/login': 'Entrar',
+      '/mapa': 'Mapa de instituições',
+    }
+    const pageTitle = institutionPublicMatch ? 'Perfil da instituição' : (titles[pathname] || 'Conectando doadores e instituições')
+    document.title = `${pageTitle} / Laço`
+  }, [institutionPublicMatch, pathname])
+
+  if (pathname === '/cadastro') return <UserRegistrationPage />
+  if (pathname === '/instituicoes') return <InstitutionRegistrationPage />
+  if (pathname === '/instituicoes/perfil') return <InstitutionProfilePage />
+  if (pathname === '/instituicoes/perfil/editar') return <InstitutionProfilePage isEditingProfile />
+  if (pathname === '/usuario/perfil') return <UserProfilePage />
   if (institutionPublicMatch) return <PublicInstitutionPage institutionId={decodeURIComponent(institutionPublicMatch[1])} />
-  if (window.location.pathname === '/login') return <LoginPage />
-  if (window.location.pathname === '/mapa') return <MapPage organizations={organizations} />
+  if (pathname === '/login') return <LoginPage />
+  if (pathname === '/mapa') return <MapPage organizations={organizations} />
   return <HomePage organizations={organizations} />
 }
 

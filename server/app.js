@@ -27,21 +27,42 @@ if (isProduction && !process.env.SESSION_SECRET) {
 }
 
 app.set("trust proxy", 1);
+
+const clientBuildDirectory = path.resolve(__dirname, "../client/dist");
+const clientEntryFile = path.join(clientBuildDirectory, "index.html");
+
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "no-referrer");
   next();
 });
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || clientOrigins.includes(normalizeOrigin(origin))) return callback(null, true);
-    return callback(new Error("Origem não permitida."));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type"],
-}));
+
+if (isProduction) {
+  if (!fs.existsSync(clientEntryFile)) {
+    console.error(`Build do cliente não encontrado em ${clientEntryFile}.`);
+  }
+
+  // Os assets da própria aplicação não dependem da lista CORS da API.
+  app.use(express.static(clientBuildDirectory));
+}
+
+app.use((req, res, next) => {
+  const requestOrigin = normalizeOrigin(`${req.protocol}://${req.get("host")}`);
+
+  return cors({
+    origin(origin, callback) {
+      const normalizedOrigin = origin && normalizeOrigin(origin);
+      if (!normalizedOrigin || normalizedOrigin === requestOrigin || clientOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Origem não permitida."));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type"],
+  })(req, res, next);
+});
 app.use((req, res, next) => {
   if (isProduction && !req.secure) {
     return res.status(400).json({ message: "Use uma conexão HTTPS." });
@@ -569,14 +590,6 @@ app.delete("/api/demandas/:id", requireAuthentication, requireDemandOwner, (req,
 });
 
 if (isProduction) {
-  const clientBuildDirectory = path.resolve(__dirname, "../client/dist");
-  const clientEntryFile = path.join(clientBuildDirectory, "index.html");
-
-  if (!fs.existsSync(clientEntryFile)) {
-    console.error(`Build do cliente não encontrado em ${clientEntryFile}.`);
-  }
-
-  app.use(express.static(clientBuildDirectory));
   app.get(/^(?!\/api(?:\/|$)).*/, (_req, res) => res.sendFile(clientEntryFile));
 }
 
