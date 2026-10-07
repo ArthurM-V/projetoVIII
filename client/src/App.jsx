@@ -9,9 +9,9 @@ const fallbackOrganizations = [
   { id: 'rede-recomeco', name: 'Rede Recomeço', category: 'Assistência social', distance: '5,6 km', initials: 'RR', color: 'green', needs: 'Cestas básicas' },
 ]
 
-// No deploy integrado, o frontend e a API usam o mesmo domínio. No Vite local,
-// mantemos a API do Express na porta 5000.
-const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '')
+// No deploy integrado, o frontend e a API usam sempre o mesmo domínio. No Vite
+// local, a API do Express permanece disponível na porta 5000.
+const apiBaseUrl = import.meta.env.DEV ? (import.meta.env.VITE_API_URL || 'http://localhost:5000') : ''
 let googleMapsPromise
 
 function loadGoogleMaps(apiKey) {
