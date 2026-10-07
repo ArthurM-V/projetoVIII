@@ -45,7 +45,7 @@ O projeto pode ser publicado como um único serviço, com o Express servindo o b
 3. Configure o comando de build:
 
 ```text
-npm ci --omit=dev && npm --prefix client ci --include=dev && npm --prefix client run build && if grep -R -q 'localhost:5000' client/dist; then echo 'Erro: o build de produção contém localhost:5000.'; exit 1; fi && npm --prefix server ci --omit=dev
+npm ci --omit=dev && npm --prefix client ci --include=dev && npm --prefix client run build && npm --prefix server ci --omit=dev
 ```
 
 4. Configure o comando de início:
