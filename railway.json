@@ -1,0 +1,9 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "buildCommand": "npm ci --omit=dev && npm --prefix client ci --include=dev && npm --prefix client run build && npm --prefix server ci --omit=dev"
+  },
+  "deploy": {
+    "startCommand": "npm start"
+  }
+}

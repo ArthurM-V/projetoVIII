@@ -45,7 +45,7 @@ O projeto pode ser publicado como um único serviço, com o Express servindo o b
 3. Configure o comando de build:
 
 ```text
-npm --prefix client ci && npm --prefix client run build && npm --prefix server ci
+npm ci --omit=dev && npm --prefix client ci --include=dev && npm --prefix client run build && npm --prefix server ci --omit=dev
 ```
 
 4. Configure o comando de início:
