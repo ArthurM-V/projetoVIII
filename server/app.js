@@ -12,7 +12,8 @@ const db = require("./database/database");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const isProduction = process.env.NODE_ENV === "production";
+const isRailwayDeployment = Boolean(process.env.RAILWAY_ENVIRONMENT);
+const isProduction = process.env.NODE_ENV === "production" || isRailwayDeployment;
 const demoMode = process.env.DEMO_MODE !== "false";
 const sessionSecret = process.env.SESSION_SECRET || "development-only-session-secret";
 const clientOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173,http://localhost:4173")
@@ -568,8 +569,14 @@ app.delete("/api/demandas/:id", requireAuthentication, requireDemandOwner, (req,
 
 if (isProduction) {
   const clientBuildDirectory = path.resolve(__dirname, "../client/dist");
+  const clientEntryFile = path.join(clientBuildDirectory, "index.html");
+
+  if (!fs.existsSync(clientEntryFile)) {
+    console.error(`Build do cliente não encontrado em ${clientEntryFile}.`);
+  }
+
   app.use(express.static(clientBuildDirectory));
-  app.get(/^(?!\/api(?:\/|$)).*/, (_req, res) => res.sendFile(path.join(clientBuildDirectory, "index.html")));
+  app.get(/^(?!\/api(?:\/|$)).*/, (_req, res) => res.sendFile(clientEntryFile));
 }
 
 app.use((error, _req, res, _next) => {
