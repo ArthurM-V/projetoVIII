@@ -16,9 +16,10 @@ const isRailwayDeployment = Boolean(process.env.RAILWAY_ENVIRONMENT);
 const isProduction = process.env.NODE_ENV === "production" || isRailwayDeployment;
 const demoMode = process.env.DEMO_MODE !== "false";
 const sessionSecret = process.env.SESSION_SECRET || "development-only-session-secret";
+const normalizeOrigin = (origin) => origin.trim().replace(/\/+$/, "");
 const clientOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173,http://localhost:4173")
   .split(",")
-  .map((origin) => origin.trim())
+  .map(normalizeOrigin)
   .filter(Boolean);
 
 if (isProduction && !process.env.SESSION_SECRET) {
@@ -34,7 +35,7 @@ app.use((req, res, next) => {
 });
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || clientOrigins.includes(origin)) return callback(null, true);
+    if (!origin || clientOrigins.includes(normalizeOrigin(origin))) return callback(null, true);
     return callback(new Error("Origem não permitida."));
   },
   credentials: true,
