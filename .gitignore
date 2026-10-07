@@ -1,0 +1,29 @@
+# Dependencies
+**/node_modules/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local SQLite data and its transient files
+server/database/*.db
+server/database/*.db-*
+*.sqlite
+*.sqlite3
+
+# Build output and tool caches
+client/dist/
+.vite/
+.vercel/
+.railway/
+
+# Logs and operating system files
+*.log
+npm-debug.log*
+Thumbs.db
+.DS_Store
+
+# Editors
+.vscode/
+.idea/

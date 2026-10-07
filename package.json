@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "scripts": {
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server start",
+    "lint": "npm --prefix client run lint",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server run start:production"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.5"
+  }
+}
